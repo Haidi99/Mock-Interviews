@@ -15,7 +15,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     #path('',views.home, name= 'home'),
     #path('test/',views.test, name= 'test'),
-    path('api/',api_views.EmailCreate.create_person_view, name = 'api'),
-    path('api/subscribe',api_views.EmailCreate.create_subscribe_view, name = 'api'),
+    path('', include('interview.urls')),
+    #path('api/',api_views.EmailCreate.create_person_view, name = 'api'),
+    path('api/subscribe/',api_views.EmailCreate.create_subscribe_view, name = 'subscribe'),
     
 ]
