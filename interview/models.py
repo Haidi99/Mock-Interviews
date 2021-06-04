@@ -1,7 +1,9 @@
 from django.db import models
 
+
 class Job(models.Model):
     jid = models.IntegerField(null =False, primary_key=True)
+
 
 class Subscribe(models.Model):
     id = models.IntegerField( null =False, primary_key=True)
@@ -19,16 +21,19 @@ class User(models.Model):
     phone = models.IntegerField(unique=True)
     jobid = models.ForeignKey(Job, on_delete=models.CASCADE, null=True)
 
+
 class FeedBack(models.Model):
     fbid = models.IntegerField(null =False, primary_key=True)
     template = models.TextField(max_length=10000)
     uid = models.OneToOneField(User, on_delete = models.CASCADE)
+
 
 class Interview(models.Model):
     ivid = models.IntegerField( null =False, primary_key=True)
     date = models.DateField()
     uid = models.ForeignKey(User, on_delete=models.CASCADE)
     fid = models.OneToOneField(FeedBack, on_delete = models.CASCADE)
+
 
 class Stage(models.Model):
     sid = models.IntegerField(null =False, primary_key=True)

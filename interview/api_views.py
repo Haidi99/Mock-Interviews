@@ -1,8 +1,10 @@
 from rest_framework import serializers
-from .models import User, Subscribe
+from .models import Subscribe
+from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
-from .serializers import  SubscribeSerializer, RegisterSerializer, UserSerializer
+from .serializers import SubscribeSerializer, RegisterSerializer, UserSerializer, ChangePasswordSerializer, \
+    UpdateUserSerializer
 from rest_framework.decorators import api_view
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.generics import ListAPIView, CreateAPIView
@@ -10,8 +12,14 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.exceptions import ErrorDetail
 from django.core.mail import send_mail
 from mock_interview.settings import EMAIL_HOST_USER
-
+from rest_framework.permissions import IsAuthenticated
 from knox.models import AuthToken
+from django.contrib.auth import login
+
+from rest_framework import permissions
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from knox.views import LoginView as KnoxLoginView
+
 
 # Register API
 class RegisterAPI(generics.GenericAPIView):
@@ -22,16 +30,24 @@ class RegisterAPI(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response({
-        "user": UserSerializer(user, context=self.get_serializer_context()).data,
-        "token": AuthToken.objects.create(user)[1]
+            "user": UserSerializer(user, context=self.get_serializer_context()).data,
+            "token": AuthToken.objects.create(user)[1]
         })
 
 
-from django.contrib.auth import login
+class ChangePasswordView(generics.UpdateAPIView):
 
-from rest_framework import permissions
-from rest_framework.authtoken.serializers import AuthTokenSerializer
-from knox.views import LoginView as KnoxLoginView
+    queryset = User.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ChangePasswordSerializer
+
+
+class UpdateProfileView(generics.UpdateAPIView):
+
+    queryset = User.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UpdateUserSerializer
+
 
 class LoginAPI(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
@@ -40,7 +56,7 @@ class LoginAPI(KnoxLoginView):
         serializer = AuthTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
-        login(request, user) #responsible for login.
+        login(request, user)  # responsible for login.
         return super(LoginAPI, self).post(request, format=None)
 
 
@@ -58,7 +74,6 @@ class EmailCreate(CreateAPIView, GenericViewSet):
     #         response_message = {"error": "There is no user created for this user."}
     #         return Response(response_message, status=status.HTTP_400_BAD_REQUEST)
 
-        
     #     if request.method == "POST":
     #         serializer = PersonSerializer(data=request.data)
     #     data = {}
@@ -74,10 +89,9 @@ class EmailCreate(CreateAPIView, GenericViewSet):
     #         data = serializer.errors
     #     return Response(data, status=status.HTTP_400_BAD_REQUEST) 
 
-
-    @api_view(["POST"],)
+    @api_view(["POST"], )
     def create_subscribe_view(request):
-    
+
         exists = Subscribe.objects
         # if exists:
         #     err = ErrorDetail(string="Email address already used.", code="unique")
@@ -94,8 +108,9 @@ class EmailCreate(CreateAPIView, GenericViewSet):
                 subject = 'Welcome to Oursite'
                 message = 'Hope you are well now, i love you!'
                 recepient = str(data['email'])
-                send_mail(subject, message, EMAIL_HOST_USER, [recepient], fail_silently = False)
+                send_mail(subject, message, EMAIL_HOST_USER, [recepient], fail_silently=False)
                 return Response(data=data, status=status.HTTP_201_CREATED)
             else:
                 data = serializer.errors
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
