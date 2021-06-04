@@ -20,6 +20,10 @@ from rest_framework import permissions
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from knox.views import LoginView as KnoxLoginView
 
+import schedule 
+import time 
+import requests
+
 
 # Register API
 class RegisterAPI(generics.GenericAPIView):
@@ -109,6 +113,23 @@ class EmailCreate(CreateAPIView, GenericViewSet):
                 message = 'Hope you are well now, i love you!'
                 recepient = str(data['email'])
                 send_mail(subject, message, EMAIL_HOST_USER, [recepient], fail_silently=False)
+
+                url = "https://www.careeronestop.org/JobSearch/Interview/interview-tips.aspx"
+                # page = requests.get(url)
+
+                def send_tips():
+                    subject = 'Mock Interview Tips & trick'
+                    message = 'Hello it tips and tricks for this week, please read it and stay tuned for more..'+ url
+                    recepient = str(data['email'])
+                    return send_mail(subject, message, EMAIL_HOST_USER, [recepient], fail_silently = False)
+                
+                schedule.every(60).seconds.do(send_tips)
+                #schedule.every(604800).day().at("06:54").do(send_tips)
+                while time:
+                    schedule.run_pending()
+                    time.sleep(1)
+
+
                 return Response(data=data, status=status.HTTP_201_CREATED)
             else:
                 data = serializer.errors
