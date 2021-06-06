@@ -1,15 +1,19 @@
 from rest_framework import serializers
-from .models import Subscribe
+from .models import Subscribe, Dreamjob
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
 from .serializers import SubscribeSerializer, RegisterSerializer, UserSerializer, ChangePasswordSerializer, \
-    UpdateUserSerializer
+    UpdateUserSerializer, DreamjobSerializer
 from rest_framework.decorators import api_view
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.exceptions import ErrorDetail
+
+from rest_framework.filters import SearchFilter 
+from django_filters.rest_framework import DjangoFilterBackend
+
 from django.core.mail import send_mail
 from mock_interview.settings import EMAIL_HOST_USER
 from rest_framework.permissions import IsAuthenticated
@@ -114,16 +118,37 @@ class EmailCreate(CreateAPIView, GenericViewSet):
                 recepient = str(data['email'])
                 send_mail(subject, message, EMAIL_HOST_USER, [recepient], fail_silently=False)
 
-                url = "https://www.careeronestop.org/JobSearch/Interview/interview-tips.aspx"
+                #url = "https://www.careeronestop.org/JobSearch/Interview/interview-tips.aspx"
                 # page = requests.get(url)
 
-                def send_tips():
-                    subject = 'Mock Interview Tips & trick'
-                    message = 'Hello it tips and tricks for this week, please read it and stay tuned for more..'+ url
-                    recepient = str(data['email'])
-                    return send_mail(subject, message, EMAIL_HOST_USER, [recepient], fail_silently = False)
+                mail_content = {
+                    1:"https://www.careeronestop.org/JobSearch/Interview/interview-tips.aspx",
+                    2:"https://www.indeed.com/career-advice/interviewing/job-interview-tips-how-to-make-a-great-impression",
+                    3:"https://www.roberthalf.co.nz/career-advice/interview",
+                    4:"https://www.thebalancecareers.com/top-interview-tips-2058577"
+                    }
                 
-                schedule.every(60).seconds.do(send_tips)
+                #i = 1
+                for key in mail_content:
+                    if (key <= 4):
+                        url = mail_content[key] 
+                        def send_tips():
+                            subject = 'Mock Interview Tips & trick'
+                            message = 'Hello it tips and tricks for this week, please read it and stay tuned for more..'+ url
+                            recepient = str(data['email'])
+                            return send_mail(subject, message, EMAIL_HOST_USER, [recepient], fail_silently = False)
+                        
+                        schedule.every(2).seconds.do(send_tips)
+                        key= key +1
+                
+
+                # def send_tips():
+                #     subject = 'Mock Interview Tips & trick'
+                #     message = 'Hello it tips and tricks for this week, please read it and stay tuned for more..'+ url
+                #     recepient = str(data['email'])
+                #     return send_mail(subject, message, EMAIL_HOST_USER, [recepient], fail_silently = False)
+                
+                # schedule.every(4).seconds.do(send_tips)
                 #schedule.every(604800).day().at("06:54").do(send_tips)
                 while time:
                     schedule.run_pending()
@@ -135,3 +160,11 @@ class EmailCreate(CreateAPIView, GenericViewSet):
                 data = serializer.errors
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
+#@api_view(['POST',])
+class Dream_job(generics.ListAPIView):
+
+    queryset = Dreamjob.objects.all()
+    serializer_class = DreamjobSerializer
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filter_fields = ('job_title', 'skills_text')
+    #search_fields = ('job_title')

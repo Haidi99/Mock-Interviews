@@ -43,3 +43,9 @@ class Stage(models.Model):
     title = models.TextField(max_length=20)
     fid = models.OneToOneField(FeedBack, on_delete = models.CASCADE)
     interviews = models.ManyToManyField(Interview)
+
+
+class Dreamjob(models.Model):
+    job_title = models.TextField(max_length=50)
+    skills_text = models.TextField(max_length=1000 ,blank = True )
+    #skills_pic = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100, blank = True)

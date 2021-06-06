@@ -1,6 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import User, Subscribe
+from .models import User, Subscribe,Dreamjob
 from django.contrib.auth.models import User
 
 
@@ -101,3 +101,8 @@ class SubscribeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscribe
         fields = '__all__'
+
+class DreamjobSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dreamjob
+        fields = ('job_title', 'skills_text')
